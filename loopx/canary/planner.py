@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .qualification_profiles import CONTROL_PLANE_QUALIFICATION_PROFILES
+from .path_display import repository_relative_posix
 from .quality_surface_catalog import (
     build_quality_surface_catalog_audit as _build_quality_surface_catalog_audit,
 )
@@ -1387,7 +1388,7 @@ def _read_catalog(catalog_path: Path | None = None) -> tuple[Path, str]:
 
 def _display_path(path: Path) -> str:
     try:
-        return str(path.relative_to(REPO_ROOT))
+        return repository_relative_posix(path, REPO_ROOT)
     except ValueError:
         return str(path)
 

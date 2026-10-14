@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from ..extensions.process_runtime import terminate_process_tree
+from .path_display import repository_relative_posix
 from .planner import (
     REPO_ROOT,
     build_catalog_canary_plan,
@@ -152,7 +153,7 @@ def normalize_canary_command(command: str, repo_root: Path | None = None) -> dic
         "argv": argv,
         "display_argv": _display_argv(argv, repo_root=repo_root),
         "injected_args": injected_args,
-        "script": str(script.relative_to(repo_root)),
+        "script": repository_relative_posix(script, repo_root),
     }
 
 
@@ -164,7 +165,9 @@ def _display_argv(argv: list[str], repo_root: Path | None = None) -> list[str]:
     for index, value in enumerate(displayed[1:], start=1):
         path = Path(value)
         if path.is_absolute() and _is_relative_to(path.resolve(), repo_root.resolve()):
-            displayed[index] = str(path.resolve().relative_to(repo_root.resolve()))
+            displayed[index] = repository_relative_posix(
+                path.resolve(), repo_root.resolve(), fallback=value
+            )
     return displayed
 
 

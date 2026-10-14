@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from ..contract import scan_public_boundary
+from .path_display import repository_relative_posix
 from .planner import REPO_ROOT, resolve_canary_catalog_path
 from .runner import build_canary_smoke_suite_run
 
@@ -168,7 +169,7 @@ def _public_boundary_changed_files_run(
     display_paths: list[str] = []
     for path in existing_paths:
         try:
-            display_paths.append(str(path.relative_to(repo_root.resolve())))
+            display_paths.append(repository_relative_posix(path, repo_root.resolve()))
         except ValueError:
             display_paths.append(str(path))
     display_argv = ["loopx", "check"]
@@ -345,7 +346,9 @@ def _display_argv(argv: list[str], *, repo_root: Path = REPO_ROOT) -> list[str]:
     for index, value in enumerate(displayed[1:], start=1):
         path = Path(value)
         try:
-            displayed[index] = str(path.resolve().relative_to(repo_root.resolve()))
+            displayed[index] = repository_relative_posix(
+                path.resolve(), repo_root.resolve(), fallback=value
+            )
         except (OSError, ValueError):
             displayed[index] = value
     return displayed
