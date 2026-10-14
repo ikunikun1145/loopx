@@ -478,11 +478,10 @@ def extension_status(
                 "enabled": bool(entry.get("enabled")),
                 "active_revision": entry.get("active_revision"),
                 "rollback_available": bool(entry.get("rollback_revision")),
-                # Readiness is the same predicate the catalog and dispatch use:
-                # a stale proof under an incompatible API is not "verified".
-                "doctor_verified": bool(entry.get("enabled"))
-                and _active_manifest_incompatibility(entry) is None
-                and _verified_entrypoint(entry) is not None,
+                # A proof must resolve the exact active revision before its
+                # compatibility is meaningful; older unrevisioned state stays
+                # visible but unverified.
+                "doctor_verified": _status_doctor_verified(entry),
                 "revision_count": len(entry.get("revisions") or []),
             }
             for entry in visible
@@ -666,6 +665,16 @@ def _active_manifest_incompatibility(entry: Mapping[str, Any]) -> str | None:
     return loopx_api_incompatibility(
         provider.get("requires_loopx_api"),
         context=f"extension `{extension_id}` active manifest",
+    )
+
+
+def _status_doctor_verified(entry: Mapping[str, Any]) -> bool:
+    """Require a revision-bound doctor proof before resolving compatibility."""
+
+    return (
+        bool(entry.get("enabled"))
+        and _verified_entrypoint(entry) is not None
+        and _active_manifest_incompatibility(entry) is None
     )
 
 

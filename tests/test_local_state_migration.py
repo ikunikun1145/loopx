@@ -614,7 +614,12 @@ def test_extension_cli_keeps_legacy_machine_state_without_a_global_registry(tmp_
         "schema_version": "loopx_extension_state_v0",
         "extensions": {"example": {"id": "example", "enabled": True}},
     })
-    assert _list_extensions(source.parents[1])[0]["id"] == "example"
+    listed = _list_extensions(source.parents[1])[0]
+    assert listed["id"] == "example"
+    assert listed["enabled"] is True
+    assert listed["active_revision"] is None
+    assert listed["revision_count"] == 0
+    assert listed["doctor_verified"] is False
     assert _extension_cli(source.parents[1], "disable", "example", "--execute")["changed"]
     assert _read(source / "extensions" / "state.json")["extensions"]["example"]["enabled"] is False
     assert not target.exists()
